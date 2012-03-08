@@ -170,7 +170,7 @@ public class BukkitBasiksEconomy extends JavaPlugin implements Listener {
             }
             return true;
         }
-        if (cmd.getName().equalsIgnoreCase("balance")) {/*
+        if (cmd.getName().equalsIgnoreCase("balance")) {
             try {
             userData = new YamlConfiguration();
             userData.load(userDataFile);
@@ -181,8 +181,7 @@ public class BukkitBasiksEconomy extends JavaPlugin implements Listener {
             Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
             } catch (InvalidConfigurationException ex) {
             Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            }*/
-            this.bal = new balance(player);
+            }
         }
         //<editor-fold defaultstate="collapsed" desc="buy">
         if (cmd.getName().equalsIgnoreCase("buy")) {

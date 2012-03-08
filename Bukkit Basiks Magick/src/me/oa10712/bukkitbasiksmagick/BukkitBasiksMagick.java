@@ -15,6 +15,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -65,6 +66,13 @@ public class BukkitBasiksMagick extends JavaPlugin {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
+        Player player = null;
+        if(sender instanceof Player){
+            player = (Player) sender;
+        }
+        if (cmd.getName().equalsIgnoreCase("fireball")) {
+            
+        }
         return false;
     }
 }

@@ -22,14 +22,14 @@ import org.bukkit.plugin.Plugin;
  * @author Oa10712
  */
 public class balance {
-
+    public transient BukkitBasiksCore core;
     Plugin BukkitBasiksEconomy;
-    public balance(Player player) {
-    BukkitBasiksCore core;
     Server server = BukkitBasiksEconomy.getServer();
-    YamlConfiguration userData;
+    private YamlConfiguration userData;
     File dataFolder = new File(server.getWorldContainer().getPath() + File.separator + "plugins" + File.separator + "Bukkit Basiks");
     File userDataFile = new File(dataFolder.getPath() + File.separator + "userData.yml");
+
+    public balance(Player player) {
         try {
                 userData = new YamlConfiguration();
                 userData.load(userDataFile);
