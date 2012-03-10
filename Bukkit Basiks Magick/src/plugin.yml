@@ -4,3 +4,12 @@ description: Mods for magick spells
 authors: [Oa10712, Warreo]
 main: me.oa10712.bukkitbasiksmagick.BukkitBasiksMagick
 depend: [Bukkit Basiks Core]
+command:
+  hunger:
+    description: sets a players hunger to 2.
+  summon:
+    description: summons entitys.
+  conjour:
+    description: conjours items.
+  citem:
+    description: gives info on conjours.
