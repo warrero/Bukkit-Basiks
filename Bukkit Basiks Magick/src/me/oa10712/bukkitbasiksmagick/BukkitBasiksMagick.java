@@ -252,12 +252,12 @@ public class BukkitBasiksMagick extends JavaPlugin {
             if(player != null){
             ItemStack pick = new ItemStack(Material.WOOD_PICKAXE, 1);
             PlayerInventory inventory = player.getInventory();
-            short durability = 1;
-            
-            inventory.addItem(pick);
+            short durability = 50;
+                     
             pick.setDurability(durability);
             pick.addEnchantment(Enchantment.LOOT_BONUS_BLOCKS, 3);
             pick.addEnchantment(Enchantment.DIG_SPEED, 5);
+            inventory.addItem(pick);
             }
             return true;
         }
@@ -266,12 +266,12 @@ public class BukkitBasiksMagick extends JavaPlugin {
             if(player!= null){
             ItemStack axe = new ItemStack(Material.WOOD_AXE, 1);
             PlayerInventory inventory = player.getInventory();
-            short durability = 5; 
+            short durability = 50; 
             
-            inventory.addItem(axe);
             axe.setDurability(durability);
             axe.addEnchantment(Enchantment.LOOT_BONUS_BLOCKS, 3);
-            axe.addEnchantment(Enchantment.DIG_SPEED, 5);          
+            axe.addEnchantment(Enchantment.DIG_SPEED, 5);       
+            inventory.addItem(axe);
             }
         }
 
@@ -301,5 +301,21 @@ public class BukkitBasiksMagick extends JavaPlugin {
         }
     }
      */
-    
+   /* PlayerInventory inv = player.getInventory();
+            HashMap<Integer, ? extends ItemStack> dirts = inv.all(Material.DIRT);
+            int num = 0;
+            int temp = 0;
+            for (int i = 0; i < dirts.size(); i++) {
+                ItemStack get = dirts.get(i);
+                temp = num + get.getAmount();
+                num = temp;
+            }
+            if (inv.contains(Material.DIRT)) {
+                if (num < 10) {
+                    player.sendMessage("You do not have enough!");
+                } else {
+                    ItemStack dirt = new ItemStack(Material.DIRT, num - 10);
+                    inv.addItem(dirt);
+                }
+            }*/
 }
