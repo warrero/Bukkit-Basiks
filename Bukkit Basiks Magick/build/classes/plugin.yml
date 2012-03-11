@@ -1,0 +1,19 @@
+name: Bukkit Basiks Magick
+version: 1.0
+description: Mods for magick spells
+authors: [Oa10712, Warreo]
+main: me.oa10712.bukkitbasiksmagick.BukkitBasiksMagick
+depend: [Bukkit Basiks Core]
+commands:
+  hunger:
+    description: sets a players hunger to 2.
+  summon:
+    description: summons entitys.
+  conjour:
+    description: conjours items.
+  citem:
+    description: gives info on conjours.
+  pick:
+    description: gives a powerful pick for a short time.
+  axe:
+    description: gives a powerful axe for a short time.
