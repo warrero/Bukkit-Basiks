@@ -17,10 +17,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import me.oa10712.bukkitbasikscore.functions.setConfig;
+import me.oa10712.bukkitbasiksteleports.commands.home;
+import me.oa10712.bukkitbasiksteleports.commands.sethome;
+import me.oa10712.bukkitbasiksteleports.commands.tp;
 import me.oa10712.bukkitbasiksteleports.functions.teleport;
-import org.bukkit.Location;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -41,6 +41,7 @@ public class BukkitBasiksTeleports extends JavaPlugin implements Listener {
     private transient setConfig configset;
     private transient teleport tele;
     private YamlConfiguration userData;
+    public static Plugin instance;
     File userDataFile = new File(dataFolder.getPath() + File.separator + "userData.yml");
 
     @Override
@@ -60,6 +61,10 @@ public class BukkitBasiksTeleports extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
+        instance = this;
+        getCommand("tp").setExecutor(new tp());
+        getCommand("home").setExecutor(new home());
+        getCommand("sethome").setExecutor(new sethome());
         teleportsConfig = new YamlConfiguration();
         this.configset = new setConfig();
         this.tele = new teleport();
@@ -79,61 +84,6 @@ public class BukkitBasiksTeleports extends JavaPlugin implements Listener {
             Logger.getLogger(BukkitBasiksTeleports.class.getName()).log(Level.SEVERE, null, ex);
         }
         server.getPluginManager().registerEvents(this, this);
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-        Player player = null;
-        if (sender instanceof Player) {
-            player = (Player) sender;
-        }
-        if (cmd.getName().equalsIgnoreCase("tp")) {
-            tele.teleport(player, args);
-            return true;
-        }
-        if (cmd.getName().equalsIgnoreCase("sethome")) {
-            try {
-                userData = new YamlConfiguration();
-                Location playerlocat = player.getLocation();
-                userData.load(userDataFile);
-                userData.set("Users." + player.getName() + ".Home.X", playerlocat.getX());
-                userData.set("Users." + player.getName() + ".Home.Y", playerlocat.getY());
-                userData.set("Users." + player.getName() + ".Home.Z", playerlocat.getZ());
-                userData.set("Users." + player.getName() + ".Home.World", playerlocat.getWorld().getName());
-                userData.save(userDataFile);
-                player.sendMessage("Home set");
-            } catch (InvalidConfigurationException ex) {
-                Logger.getLogger(BukkitBasiksTeleports.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(BukkitBasiksTeleports.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(BukkitBasiksTeleports.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        if (cmd.getName().equalsIgnoreCase("home")) {
-            try {
-                userData = new YamlConfiguration();
-                userData.load(userDataFile);
-                double homex = userData.getDouble("Users." + player.getName() + ".Home.X");
-                double homey = userData.getDouble("Users." + player.getName() + ".Home.Y");
-                double homez = userData.getDouble("Users." + player.getName() + ".Home.Z");
-                String homeworld = userData.getString("Users." + player.getName() + ".Home.World");
-                Object[] argout = {cmd.getName()};
-                if (homey != 0.0) {
-                    tele.teleport(player, argout);
-                } else {
-                    player.sendMessage("You do not have a home yet. Use /sethome to set your home.");
-                }
-                return true;
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(BukkitBasiksTeleports.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(BukkitBasiksTeleports.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvalidConfigurationException ex) {
-                Logger.getLogger(BukkitBasiksTeleports.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        return false;
     }
 
     @EventHandler

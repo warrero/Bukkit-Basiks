@@ -23,8 +23,10 @@ public class convert {
     static final Logger log = Logger.getLogger("Minecraft");
     static Server server = Bukkit.getServer();
     private static YamlConfiguration worth;
+    private static YamlConfiguration economyConfig;
     static File dataFolder = new File(server.getWorldContainer().getPath() + File.separator + "plugins" + File.separator + "Bukkit Basiks");
     static File worthFile = new File(dataFolder.getPath() + File.separator + "cost.yml");
+    static File economyConfigFile = new File(dataFolder.getPath() + File.separator + "bukkitbasiksconfig.yml");
     
     public static String convertID(int string) {
         switch (string) {
@@ -64,6 +66,41 @@ public class convert {
             worth = new YamlConfiguration();
             worth.load(worthFile);
             return worth.getDouble("cost." + item.toLowerCase() + "." + String.valueOf(damage));
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(convert.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(convert.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidConfigurationException ex) {
+            Logger.getLogger(convert.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
+    }
+
+
+    public static double buyPrice(String item) {
+        try {
+            worth = new YamlConfiguration();
+            economyConfig = new YamlConfiguration();
+            economyConfig.load(economyConfigFile);
+            worth.load(worthFile);
+            return worth.getDouble("cost." + item.toLowerCase()) * economyConfig.getDouble("Economy.Sell/Buy_Rate");
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(convert.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(convert.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidConfigurationException ex) {
+            Logger.getLogger(convert.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
+    }
+    
+    public static double buyPrice(String item, int damage) {
+        try {
+            worth = new YamlConfiguration();
+            economyConfig = new YamlConfiguration();
+            economyConfig.load(economyConfigFile);
+            worth.load(worthFile);
+            return worth.getDouble("cost." + item.toLowerCase() + "." + String.valueOf(damage)) * economyConfig.getDouble("Economy.Sell/Buy_Rate");
         } catch (FileNotFoundException ex) {
             Logger.getLogger(convert.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {

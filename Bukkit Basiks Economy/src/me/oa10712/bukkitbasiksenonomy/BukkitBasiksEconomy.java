@@ -7,8 +7,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import me.oa10712.bukkitbasikscore.BukkitBasiksCore;
 import me.oa10712.bukkitbasikscore.functions.setConfig;
-import me.oa10712.bukkitbasiksenonomy.functions.balance;
-import me.oa10712.bukkitbasiksenonomy.functions.convert;
+import me.oa10712.bukkitbasiksenonomy.commands.balance;
+import me.oa10712.bukkitbasiksenonomy.commands.buy;
+import me.oa10712.bukkitbasiksenonomy.commands.pay;
+import me.oa10712.bukkitbasiksenonomy.commands.sell;
+import me.oa10712.bukkitbasiksenonomy.commands.worth;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -16,8 +19,6 @@ import org.bukkit.Server;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
@@ -28,27 +29,27 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class BukkitBasiksEconomy extends JavaPlugin implements Listener {
 
     static final Logger log = Logger.getLogger("Minecraft");
+    public static Plugin instance;
     Server server = Bukkit.getServer();
     private YamlConfiguration economyConfig;
-    public transient balance bal;
     private YamlConfiguration worth;
     protected setConfig configset;
-    File dataFolder = new File(server.getWorldContainer().getPath() + File.separator + "plugins" + File.separator + "Bukkit Basiks");
-    File economyConfigFile = new File(dataFolder.getPath() + File.separator + "bukkitbasiksconfig.yml");
-    File worthFile = new File(dataFolder.getPath() + File.separator + "cost.yml");
+    public File dataFolder = new File(server.getWorldContainer().getPath() + File.separator + "plugins" + File.separator + "Bukkit Basiks");
+    public File economyConfigFile = new File(dataFolder.getPath() + File.separator + "bukkitbasiksconfig.yml");
+    public File worthFile = new File(dataFolder.getPath() + File.separator + "cost.yml");
     private YamlConfiguration userData;
     File userDataFile = new File(dataFolder.getPath() + File.separator + "userData.yml");
 
     @Override
     public void onDisable() {
         try {
+            economyConfig = new YamlConfiguration();
             economyConfig.load(economyConfigFile);
             economyConfig.set("Economy.Enabled", false);
             economyConfig.save(economyConfigFile);
@@ -63,6 +64,12 @@ public class BukkitBasiksEconomy extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
+        instance = this;
+        getCommand("worth").setExecutor(new worth());
+        getCommand("balance").setExecutor(new balance());
+        getCommand("buy").setExecutor(new buy());
+        getCommand("sell").setExecutor(new sell());
+        getCommand("pay").setExecutor(new pay());
         try {
             economyConfig = new YamlConfiguration();
             economyConfig.load(economyConfigFile);
@@ -75,6 +82,7 @@ public class BukkitBasiksEconomy extends JavaPlugin implements Listener {
             economyConfig.load(economyConfigFile);
             economyConfig.set("Economy.Enabled", true);
             economyConfig.save(economyConfigFile);
+
         } catch (FileNotFoundException ex) {
             Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -84,231 +92,6 @@ public class BukkitBasiksEconomy extends JavaPlugin implements Listener {
         }
 
         server.getPluginManager().registerEvents(this, this);
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-        Player player = null;
-        if (sender instanceof Player) {
-            player = (Player) sender;
-        }
-        if (cmd.getName().equalsIgnoreCase("sell")) {
-            if (player != null) {
-                try {
-                    userData = new YamlConfiguration();
-                    userData.load(userDataFile);
-                    Double curcash = userData.getDouble("Users." + player.getName() + ".Money");
-                    Double changecash = Double.valueOf(0);
-                    if (args[0].equalsIgnoreCase("hand") || args.length == 0) {
-                        ItemStack handitem = player.getItemInHand();
-                        if (convert.metadata(handitem.getType().getId())) {
-                            changecash = convert.getPrice(handitem.getType().name(), handitem.getDurability());
-                            if (changecash != 0.0) {
-                                userData.set("Users." + player.getName() + ".Money", curcash + changecash);
-                                player.sendMessage("Sold " + String.valueOf(handitem.getAmount()) + " " + handitem.getType().name().toLowerCase()
-                                        + "s of type " + String.valueOf(handitem.getDurability()) + " for §6$" + changecash);
-                                handitem.setTypeId(0);
-                                player.setItemInHand(handitem);
-                            } else {
-                                player.sendMessage("This item cannot be sold to the server");
-                            }
-                        } else {
-                            changecash = convert.getPrice(handitem.getType().name()) * handitem.getAmount();
-                            if (changecash != 0.0) {
-                                userData.set("Users." + player.getName() + ".Money", curcash + changecash);
-                                player.sendMessage("Sold " + String.valueOf(handitem.getAmount()) + " " + handitem.getType().name().toLowerCase()
-                                        + "s for §6$" + changecash);
-                                handitem.setTypeId(0);
-                                player.setItemInHand(handitem);
-                            } else {
-                                player.sendMessage("This item cannot be sold to the server");
-                            }
-                        }
-                    } else if (args[0].equalsIgnoreCase("inventory") || args[0].equalsIgnoreCase("all")) {
-                        PlayerInventory inv = player.getInventory();
-                        double totalchange = 0.0;
-                        ItemStack item;
-                        for (int i = 0; i < 36; i++) {
-                            item = inv.getItem(i);
-                            userData.load(userDataFile);
-                            if (item.getTypeId() == 0) {
-                            } else {
-                                if (convert.metadata(item.getType().getId())) {
-                                    changecash = convert.getPrice(item.getType().name(), item.getDurability());
-                                    if (changecash != 0.0) {
-                                        userData.set("Users." + player.getName() + ".Money", curcash + changecash);
-                                        item.setTypeId(0);
-                                        inv.setItem(i, item);
-                                        totalchange = totalchange + changecash;
-                                    } else {
-                                    }
-                                } else {
-                                    changecash = convert.getPrice(item.getType().name()) * item.getAmount();
-                                    if (changecash != 0.0) {
-                                        userData.set("Users." + player.getName() + ".Money", curcash + changecash);
-                                        item.setTypeId(0);
-                                        inv.setItem(i, item);
-                                        totalchange = totalchange + changecash;
-                                    } else {
-                                    }
-                                }
-                            }
-                            userData.save(userDataFile);
-                        }
-                        player.sendMessage("Sold all for $" + totalchange);
-                    }
-                    userData.save(userDataFile);
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (InvalidConfigurationException ex) {
-                    Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } else {
-                log.info("This cannot be run from the Console");
-            }
-            return true;
-        }
-        if (cmd.getName().equalsIgnoreCase("balance")) {
-            try {
-            userData = new YamlConfiguration();
-            userData.load(userDataFile);
-            player.sendMessage("Current Ballance: §6$" + String.valueOf(userData.getDouble("Users." + player.getName() + ".Money")));
-            } catch (FileNotFoundException ex) {
-            Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-            Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvalidConfigurationException ex) {
-            Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        //<editor-fold defaultstate="collapsed" desc="buy">
-        if (cmd.getName().equalsIgnoreCase("buy")) {
-            try {
-
-                worth = new YamlConfiguration();
-                economyConfig = new YamlConfiguration();
-                userData = new YamlConfiguration();
-                userData.load(userDataFile);
-                worth.load(worthFile);
-                economyConfig.load(economyConfigFile);
-                double curcash = userData.getDouble("Users." + player.getName() + ".Money");
-                if (args.length == 2) {
-                    double quantityrate = Double.valueOf(args[1]) * economyConfig.getDouble("Economy.Sell/Buy_Rate");
-                    double changecash = worth.getDouble("cost." + args[0].toLowerCase()) * quantityrate;
-                    if (changecash != 0.0) {
-                        if (changecash > curcash) {
-                            player.sendMessage("You cannot afford this many of this item");
-                        } else {
-                            userData.set("Users." + player.getName() + ".Money", curcash - changecash);
-                            userData.save(userDataFile);
-                            player.sendMessage("Bought " + args[1] + " " + args[0] + "(s) for §6$" + changecash);
-                            String[] itemdata = splitItem(args[0]);
-                            ItemStack bought;
-                            if (itemdata.length == 1) {
-                                bought = new ItemStack(Material.getMaterial(args[0].toUpperCase()), Integer.valueOf(args[1]));
-                            } else {
-                                bought = new ItemStack(Material.getMaterial(itemdata[0].toUpperCase()), Integer.parseInt(args[1]), Short.parseShort(itemdata[1]));
-                            }
-                            player.getInventory().addItem(bought);
-                        }
-                    } else {
-                        player.sendMessage("This item cannot be bought from the server");
-                    }
-                } else if (args.length == 1) {
-                    double changecash = worth.getDouble("cost." + args[0].toLowerCase()) * economyConfig.getDouble("Economy.Sell/Buy_Rate");
-                    if (changecash != 0.0) {
-                        if (changecash > curcash) {
-                            player.sendMessage("You cannot afford this many of this item");
-                        } else {
-                            userData.set("Users." + player.getName() + ".Money", curcash - changecash);
-                            userData.save(userDataFile);
-                            player.sendMessage("Bought 1 " + args[0] + "(s) for §6$" + changecash);
-                            String[] itemdata = splitItem(args[0]);
-                            ItemStack bought;
-                            if (itemdata.length == 1) {
-                                bought = new ItemStack(Material.getMaterial(args[0].toUpperCase()), 1);
-                            } else {
-                                bought = new ItemStack(Material.getMaterial(itemdata[0].toUpperCase()), 1, Short.parseShort(itemdata[1]));
-                            }
-                            player.getInventory().addItem(bought);
-                        }
-                    } else {
-                        player.sendMessage("This item cannot be bought from the server");
-                    }
-                }
-                return true;
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvalidConfigurationException ex) {
-                Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        //</editor-fold>
-        //<editor-fold defaultstate="collapsed" desc="worth">
-        if (cmd.getName().equalsIgnoreCase("worth")) {
-            try {
-                economyConfig = new YamlConfiguration();
-                worth = new YamlConfiguration();
-                worth.load(worthFile);
-                economyConfig.load(economyConfigFile);
-                double price = 0.0;
-                String name = null;
-                if (args.length == 1) {
-                    price = worth.getDouble("cost." + args[0].toLowerCase());
-                    name = args[0];
-                } else {
-                    price = worth.getDouble("cost." + player.getItemInHand().getType().name().toLowerCase());
-                    name = player.getItemInHand().getType().name().toLowerCase();
-                }
-                if (price == 0.0) {
-                    player.sendMessage("This item cannot be bought or sold to the server");
-                } else {
-                    double changecash = price * economyConfig.getDouble("Economy.Sell/Buy_Rate");
-                    player.sendMessage("Price of 1 " + name + ": Buying §6$" + changecash + "§f, Selling §6$" + price);
-                }
-                return true;
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvalidConfigurationException ex) {
-                Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        //</editor-fold>
-        if (cmd.getName().equalsIgnoreCase("pay")) {
-            try {
-                Double transfer = Double.valueOf(args[1]);
-                if (transfer > 0.00) {
-                    userData = new YamlConfiguration();
-                    userData.load(userDataFile);
-                    Double playermoney = userData.getDouble("Users." + player.getName() + ".Money");
-                    Player recieve = server.getPlayer(args[0]);
-                    if (userData.contains("Users." + args[0] + ".Money")) {
-                        Double recievemoney = userData.getDouble("Users." + args + ".Money");
-                        userData.set("Users." + args[0] + ".Money", recievemoney + transfer);
-                        userData.set("Users." + player.getName() + ".Money", playermoney - transfer);
-                        userData.save(userDataFile);
-                        player.sendMessage("Paid $" + transfer + " to " + recieve.getName());
-                        recieve.sendMessage("Recieved $" + transfer + " from " + player.getName());
-                    } else {
-                        player.sendMessage("Invalid target");
-                    }
-                }
-                return true;
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvalidConfigurationException ex) {
-                Logger.getLogger(BukkitBasiksEconomy.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        return false;
     }
 
     private void setupeconomyConfig() {
@@ -481,7 +264,7 @@ public class BukkitBasiksEconomy extends JavaPlugin implements Listener {
         return temp1;
     }
 
-    private String[] splitItem(String string) {
+    public String[] splitItem(String string) {
         String[] splitted = string.split(":");
         return splitted;
     }
